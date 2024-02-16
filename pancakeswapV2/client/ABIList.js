@@ -147,28 +147,31 @@ const factoryABI = [
 ];
 
 // Return variables for Token0 and Token1 using getPair function from factory smart contract.
-const token0 = ["function token0() external view returns (address)"];
-const token1 = ["function token1() external view returns (address)"];
+const pairABI = [
+  "function token0() external view returns (address)",
+  "function token1() external view returns (address)",
+  "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+];
 
-// Return list of all smart contracts in the factory address.
-const getPairs = [
+// A return list of all smart contracts at the factory address, which can be used to interact with token0 (Base) and token1 (Quote)
+// Where each contract will return the same quote coin which in this case is the WBNB token, but a different base coin (addressFrom)
+const allPairs = [
   "function allPairs(uint) external view returns (address pair)",
 ];
 
 // Function to get token price details, with ABI router
 // https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#code
-const getAmountsIn = [
+const routerABI = [
   "function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)",
-];
-
-const getAmountsOut = [
   "function getAmountsOut(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts)",
+  "function swapTokensForExactTokens(uint amountOut,uint amountInMax,address[] calldata path,address to,uint deadline) external returns (uint[] memory amounts)",
 ];
 
 module.exports = {
   decimalValue,
   factoryABI,
-  getPairs,
+  pairABI,
+  allPairs,
 };
 
 console.log(decimalValue);
@@ -177,4 +180,5 @@ console.log(decimalValue);
 1. The number of decimal places used to represent the token. For example, if the token has 18 decimal places, one token is equal to 1000000000000000000 (10^18) units.
 2. Requires an ABI (Application Binary Interface) to interact with smart contracts in the blockchain.
 3. When interacting with smart contracts, make sure we understand the functionality we are importing with the ABI.
+4. This is the main function when we do flashloans, swapTokensForExactTokens where it will help do the swap between tokens
 */
