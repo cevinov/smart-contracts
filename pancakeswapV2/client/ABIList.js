@@ -146,7 +146,7 @@ const factoryABI = [
   "function getPair(address tokenA, address tokenB) external view returns (address pair)",
 ];
 
-// Return variables for Token0 and Token1 using getPair function.
+// Return variables for Token0 and Token1 using getPair function from factory smart contract.
 const token0 = ["function token0() external view returns (address)"];
 const token1 = ["function token1() external view returns (address)"];
 
