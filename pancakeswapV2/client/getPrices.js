@@ -30,13 +30,48 @@ const provider = new ethers.providers.JsonRpcProvider(url);
 // console.log(provider);
 
 // Connect to factory address using provider
-const contractFactory = new ethers.Contract(addressFactory, factoryABI);
+const contractFactory = new ethers.Contract(
+  addressFactory,
+  factoryABI,
+  provider
+);
 // console.log(contractFactory);
 
 // Connect to router address
-const contractRouter = new ethers.Contract(addressRouter, routerABI);
+const contractRouter = new ethers.Contract(addressRouter, routerABI, provider);
 // console.log(contractRouter);
 /*
 
 
 */
+// Call function inside the smart contract
+const getPrices = async function (amountInReadable) {
+  const contractToken = new ethers.Contract(
+    addressFrom,
+    erc20Decimal,
+    provider
+  );
+
+  // Get decimal value from the address
+  const decimals = await contractToken.decimals();
+
+  // Convert the variables that have been passed into the blockchain format with decimal value
+  const amountInSTR = ethers.utils
+    .parseUnits(amountInReadable, decimals)
+    .toString();
+
+  // console.log(decimals);
+  return amountInSTR;
+};
+
+async function awaitVal() {
+  const value = await getPrices("5");
+  console.log(
+    "Format in Blockchain for 5 ETH: ",
+    value,
+    typeof value,
+    value.length
+  );
+}
+
+awaitVal();

@@ -138,7 +138,7 @@
 // console.log(ABIToken[0].status);
 
 // Select the required functions from the smart contract code
-const erc20Decimal = "function decimals() external pure returns (uint8)";
+const erc20Decimal = ["function decimals() external pure returns (uint8)"];
 
 // This function resides in the address factory source code, to return a list of smart contracts that interact with token0 (addressFrom) and token1 (addressTo).
 // https://bscscan.com/address/0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73#code
