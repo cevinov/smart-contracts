@@ -1,4 +1,6 @@
 // https://docs.pancakeswap.finance/developers/smart-contracts/pancakeswap-exchange/v2-contracts/
+// Pancakeswap is a multichain decentralized exchange that has become the go-to platform for trading cryptocurrencies.
+// It is built on the BNB Smart Chain (BSC), Ethereum and Aptos Network.
 
 // Set up a pancake address factory, a smart contract that allows us to find the right pair contract for a pair of tokens for a swap (getPair)
 const addressFactory = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73"; // BSC
