@@ -84,7 +84,7 @@ const getPrices = async function (amountInSTR) {
 // getPrices("5");
 
 async function calcSwap() {
-  const amountIn = "5";
+  const amountIn = "10";
   const amountOut = await getPrices(amountIn);
   console.log("AmountIn - AmountOut (Base to Quote): ", amountIn, amountOut);
 
