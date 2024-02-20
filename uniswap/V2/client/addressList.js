@@ -19,7 +19,7 @@ const addressRouter = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"; // Ethereum 
 // Set a constant address for the token we want to interact with. uniswap is on the Ethereum network
 // https://v2.info.uniswap.org/tokens
 const addressFrom = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // USDT
-const addressTo = "0x4206931337dc273a630d328da6441786bfad668f"; // TRX
+const addressTo = "0x761d38e5ddf6ccf6cf7c55759d5210750b5d60f3"; // ELON
 
 // Exporting scripts to make variables accessible to other modules (ES6)
 export { addressFactory, addressRouter, addressFrom, addressTo };

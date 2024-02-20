@@ -88,10 +88,10 @@ async function calcSwap() {
   const amountOut = await getPrices(amountIn);
   console.log("AmountIn - AmountOut (Base to Quote): ", amountIn, amountOut);
 
-  // Check the output with pancakeswap
-  // https://pancakeswap.finance/swap
+  // Check the output with uniswapV2
+  // https://app.uniswap.org/swap
 
-  // Output: AmountIn - AmountOut (Base to Quote):  5 40.4384848917597639
+  // Output: AmountIn - AmountOut (Base to Quote):  10 11220347.671263074440266946
 }
 
 calcSwap();
