@@ -85,6 +85,8 @@ async function calcSwap() {
 
   // Check the output with pancakeswap
   // https://pancakeswap.finance/swap
+
+  // Output: AmountIn - AmountOut (Base to Quote):  5 40.4384848917597639
 }
 
 calcSwap();
