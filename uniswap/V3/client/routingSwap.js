@@ -68,7 +68,7 @@ const router = new AlphaRouter({
       {
         type: SwapType.SWAP_ROUTER_02,
         recipient: walletAddress,
-        slippageTolerance: new Percent(5, 100), // Big slippage – for a test (5%)
+        slippageTolerance: new Percent(5, 10_000), // 0.05%
         deadline: Math.floor(Date.now() / 1000 + 1800), // add 1800 seconds – 30 mins deadline
       },
       // router config
