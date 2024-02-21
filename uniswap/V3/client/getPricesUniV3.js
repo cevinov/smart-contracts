@@ -84,6 +84,8 @@ async function main() {
 
   const amoutOutSTR = await getPrice(addressFrom, addressTo, amountInSTR);
   console.log(`Swap MAKER to USDC = ${amountInSTR} -- ${amoutOutSTR}`);
+
+  // Output: Swap MAKER to USDC = 1 -- 2086.148062
 }
 
 main();
