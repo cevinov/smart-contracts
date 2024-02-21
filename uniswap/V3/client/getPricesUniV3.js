@@ -75,6 +75,8 @@ async function getPrice(addressFrom, addressTo, amountInSTR) {
     .formatUnits(quoteAmountOut.toString(), decimalToken2)
     .toString();
   //   console.log(amoutOutSTR);
+
+  console.log(decimalToken1, decimalToken2);
   return amoutOutSTR;
 }
 
