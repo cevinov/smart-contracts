@@ -14,6 +14,8 @@ const {
 const {
   abi: factoryABI,
 } = require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json");
+
+// https://techgeorgii.com/uniswap-v3-sdk-tutorial-part-1-load-token-balances/
 const erc20Decimal = ["function decimals() external pure returns (uint8)"];
 
 const factoryAddressV3 = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
