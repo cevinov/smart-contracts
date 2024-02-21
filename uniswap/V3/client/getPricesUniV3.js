@@ -7,7 +7,7 @@ https://docs.uniswap.org/sdk/v3/guides/swaps/routing
 */
 const { ethers } = require("ethers");
 
-// ABI list for interacting with blockchain networks
+// ABI list for interacting with smart contract
 const {
   abi: quoterABI,
 } = require("@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json");
