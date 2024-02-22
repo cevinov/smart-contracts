@@ -51,7 +51,8 @@ const router = new AlphaRouter({
   provider,
 });
 
-//   Ask Uniswap for a route and check if route is returned
+// Ask Uniswap for a route and check if route is returned
+// IIFE async function
 (async () => {
   const [tokenIn, balanceTokenIn] = await getTokenAndBalance(contractIn);
   const [tokenOut, balanceTokenOut] = await getTokenAndBalance(contractOut);
