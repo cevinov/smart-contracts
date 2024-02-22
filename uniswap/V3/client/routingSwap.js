@@ -51,11 +51,13 @@ const router = new AlphaRouter({
   provider,
 });
 
+//   Ask Uniswap for a route and check if route is returned
 (async () => {
   const [tokenIn, balanceTokenIn] = await getTokenAndBalance(contractIn);
   const [tokenOut, balanceTokenOut] = await getTokenAndBalance(contractOut);
 
   const amountIn = ethers.utils.parseUnits("1", 18);
+
   const inAmount = CurrencyAmount.fromRawAmount(tokenIn, amountIn.toString());
   //   console.log(inAmount);
 
@@ -94,6 +96,11 @@ const router = new AlphaRouter({
     console.log(`   Gas Used: ${route.estimatedGasUsed.toString()}`);
     console.log(`   Gas Price Wei: ${route.gasPriceWei}`);
     console.log("");
+    /*
+    Gas is the amount of computing work Ethereum needs to get the work done. Most simple swaps I tested require 300,000 of computational work and that does not change on network load. Simply put, this is a number of computation steps for Ethereum virtual machine.
+
+    Gas price is the amount in wei you pay for each computational step. If you want to speed up execution of your swap than set gas price more than estimated (route.gasPriceWei) so that nodes would be incentivised to process your operation first.
+    */
   } catch (err) {
     console.log("Error: ", err);
   }
@@ -107,4 +114,33 @@ Output:
    Gas Used USD: 18.952500039884998199
    Gas Used: 128000
    Gas Price Wei: 51006581130
+*/
+
+/*
+NOTE:
+How to conduct token swap in Uniswap
+Swap is conducted in the following way:
+
+You first ask Uniswap for a swap route with desired parameters.
+Uniswap gives you that route that includes:
+- Path on how swap would be made optimally. For example, if swap WETH->USDT is to be made, a path WETH->DAI->USDT can be more optimal to get more USDT for a given amount of WETH.
+- Optimal quote.
+- Swap gas and gas price estimations.
+- And many other parameters.
+
+
+If you are fine with that quote you submit swap transaction with that route and wait for result.
+Let’s see what we need to specify to ask Uniswap for a route:
+
+Input or output amount depending on type of trade (next point). In this case we swap fixed amount of WETH (input token) to get some USDT, so we specify it in inAmount variable.
+Type of trade (swap):
+- EXACT_INPUT – we fix the amount of input tokens (let’s say 10 WETH) to get as much USDT as possible.
+- EXACT_OUTPUT – we fix the amount of output tokens (let’s say we need 100 USDT as an output) and ask Uniswap to construct the route to spend as few WETH as possible.
+
+
+We also set swapOptions, in our example:
+1. recipient – wallet address that will get the result coins
+2. slippageTolerance in % – how much of a quoted amount we can tolerate. E.g., if the quote indicated we would get 100 USDT as a result, in case of 5% slippage tolerance a swap wouldn’t be executed if less than 95 USDT would be our result coins.
+3. deadline – deadline in absolute seconds. In this example add 1800 seconds (so that 30 minutes). If swap takes longer than it wouldn’t be successful.
+4. routerConfig. A prominent parameter is maxSwapsPerPath that defines how many intermediary swaps we can tolerate. E.g., if maxSwapsPerPath is set to 1 than only direct swap WETH->USDT would be allowed. When testing I once had to limit maxSwapsPerPath to 1 since on Rinkeby test network a suggested route USDT->DAI->WETH didn’t work for me due to (I guess) broken data – a UniswapV2Pair contract balance for DAI was greater than 2^112-1 (https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2Pair.sol) and overflow error was thrown. Direct USDT->WETH swap worked just fine.
 */
