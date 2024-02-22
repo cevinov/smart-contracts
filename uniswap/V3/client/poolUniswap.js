@@ -22,6 +22,8 @@ async function getPoolAddress() {
   const tokenQuote = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // USDC
   const result = await factoryContract.getPool(tokenBase, tokenQuote, 3000); // commission - 3%
   console.log("Pool Address:", result);
+
+  // Output: Pool Address: 0x0F9d9d1cCE530C91f075455EfEf2D9386375df3d
 }
 
 getPoolAddress();
