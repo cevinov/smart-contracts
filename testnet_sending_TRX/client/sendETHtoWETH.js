@@ -17,7 +17,7 @@ const walletSigner = new ethers.Wallet(privateKey, providerTestnet);
 */
 const exchangeETH = async () => {
   const gasPrice = await providerTestnet.getGasPrice(); // Check recommendation for gasPrice (Priority)
-  const nonce = 2; // an incrementing value indexed per owner,token,and spender for each signature (So change it every time we send a transaction)
+  const nonce = 3; // an incrementing value indexed per owner,token,and spender for each signature (So change it every time we send a transaction)
   // https://docs.uniswap.org/contracts/permit2/reference/allowance-transfer
 
   // Build transactions that are represented as objects
@@ -36,6 +36,7 @@ const exchangeETH = async () => {
   console.log(trxSend); // Check hash value, and check in MetaMask if there is a change in the amount for WETH
   /* Hash value: 
   0x2623416348f3f1fc70fdadd6cd2ae2f683063a71369e983aaeea1e525ed63472
+  0xb25e98582011235237eac7e5ef9d0fdad9c692b6050a011ceb09394841596e7b
   */
 };
 
