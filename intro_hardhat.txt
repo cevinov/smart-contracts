@@ -1,7 +1,7 @@
 https://hardhat.org/hardhat-runner/docs/getting-started#installation
 
 Run this command after hardhat installation:
-npx test hardhat npx
+npx test hardhat
 
 If the error returns due to a gas limit then the hardhat installation was successfully completed.
 
@@ -26,3 +26,8 @@ NPM list:
  "ethereum-waffle": "^4.0.10",
  "ethers": "^5.7.2",
  "hardhat": "^2.20.0"
+
+Test compile smart contract with hardhat from /contracts directory
+Command: npx hardhat compile
+https://hardhat.org/hardhat-runner/docs/config
+ 
