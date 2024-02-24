@@ -81,7 +81,7 @@ const getPrices = async function (amountInSTR) {
 async function calcSwap() {
   const amountIn = "5";
   const amountOut = await getPrices(amountIn);
-  console.log("AmountIn - AmountOut (Base to Quote): ", amountIn, amountOut);
+  console.log("AmountIn - AmountOut (ETH to WBNB): ", amountIn, amountOut);
 
   // Check the output with pancakeswap
   // https://pancakeswap.finance/swap
