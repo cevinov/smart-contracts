@@ -1,0 +1,28 @@
+https://hardhat.org/hardhat-runner/docs/getting-started#installation
+
+Run this command after hardhat installation:
+npx test hardhat npx
+
+If the error returns due to a gas limit then the hardhat installation was successfully completed.
+
+List of hardhat tasks:
+AVAILABLE TASKS:
+
+  accounts              Prints the list of accounts
+  check                 Check whatever you need
+  clean                 Clears the cache and deletes all artifacts
+  compile               Compiles the entire project, building all artifacts
+  console               Opens a hardhat console
+  flatten               Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened.
+  help                  Prints this message
+  node                  Starts a JSON-RPC server on top of Hardhat Network
+  run                   Runs a user-defined script after compiling the project
+  test                  Runs mocha tests
+
+NPM list:
+ "@nomiclabs/hardhat-ethers": "^2.2.3",
+ "@nomiclabs/hardhat-waffle": "^2.0.6",
+ "chai": "^4.3.6",
+ "ethereum-waffle": "^4.0.10",
+ "ethers": "^5.7.2",
+ "hardhat": "^2.20.0"
