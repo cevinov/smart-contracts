@@ -6,7 +6,7 @@ const {
   addressRouter,
   addressFrom,
   addressTo,
-} = require("./utils/addressList");
+} = require("./utils/addressListPancake");
 const { erc20Decimal, factoryABI, routerABI } = require("./utils/ABIList");
 
 // Declaring the variables we will use
@@ -44,6 +44,7 @@ const getAmountOut = async function (amountIn) {
 };
 
 (async function () {
-  const decVal = await getAmountOut("5");
-  console.log("aaa", decVal);
+  const timestamp = Date.now() + 60000;
+  const date = new Date(timestamp);
+  console.log(date, typeof timestamp);
 })();
