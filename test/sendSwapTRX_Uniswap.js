@@ -122,14 +122,17 @@ describe("Read and Write to the Blockchain", function () {
     );
 
     assert(trxSwap.hash);
-    console.log(trxSwap);
+    // console.log(trxSwap);
 
-    // // Connect to fork mainnet with waffle
-    // const forkMainnetProvider = waffle.provider;
+    // Connect to fork mainnet with waffle
+    const forkMainnetProvider = waffle.provider;
 
-    // // Submit a swap transaction where we will get a receipt for this transaction. Note that this is in the local env so we can't check it from the blockchain with etherscan.
-    // const trxReceipt = await forkMainnetProvider.getTransactionReceipt(
-    //   trxSwap.hash
-    // );
+    // Submit a swap transaction where we will get a receipt for this transaction. Note that this is in the local env so we can't check it from the blockchain with etherscan.
+    const trxReceipt = await forkMainnetProvider.getTransactionReceipt(
+      trxSwap.hash
+    );
+
+    console.log("\nTRX Swap:", trxSwap);
+    console.log("\n\nTRX Receipt:", trxReceipt);
   });
 });
