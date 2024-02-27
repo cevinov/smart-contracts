@@ -30,7 +30,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://bsc-dataseed.binance.org/",
+        url: "https://ultra-dry-sheet.bsc.quiknode.pro/da7eedbc68bff1b7cf710e61ca4e145bf98c69fb/",
       },
     },
     testnet: {

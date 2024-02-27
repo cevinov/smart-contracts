@@ -23,7 +23,8 @@ const {
 // What is RPC endpoint?: https://101blockchains.com/rpc-node/
 // RPC endpoint used to send commands to blockchain nodes and receive responses
 // https://docs.bnbchain.org/docs/rpc/
-url = "https://bsc-dataseed.bnbchain.org";
+url =
+  "https://ultra-dry-sheet.bsc.quiknode.pro/da7eedbc68bff1b7cf710e61ca4e145bf98c69fb/"; // Quicknode
 
 // The next thing is connected to the blockchain with the provider (BSC RPC endpoint) using ethers library
 const provider = new ethers.providers.JsonRpcProvider(url);
