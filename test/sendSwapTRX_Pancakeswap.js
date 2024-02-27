@@ -70,7 +70,7 @@ describe("Read and Write to the Blockchain", function () {
     assert(checkAmountOut);
   });
 
-  // Send transactions to the fork mainnet, without using the test network. This is why we use hardhat to develop smart contracts on-premises.
+  // Send transactions to the fork mainnet, without using the test network. This is why we use hardhat to develop smart contracts on-premises (Local machine).
   //   https://hardhat.org/hardhat-network/docs/guides/forking-other-networks
   it("Send a TRX, i.e swap a tokens", async function () {
     // Get signer wallet address with fork mainnet
