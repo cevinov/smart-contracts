@@ -16,10 +16,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
+ * We can import multiple versions of the solidity compiler, simply by declaring it as an object
  */
 module.exports = {
   solidity: {
-    version: "0.8.24",
+    compilers: [
+      { version: "0.8.24" },
+      { version: "0.5.0" },
+      { version: "0.7.0" },
+    ],
     settings: {
       optimizer: {
         enabled: true,
@@ -30,16 +35,16 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://ultra-dry-sheet.bsc.quiknode.pro/da7eedbc68bff1b7cf710e61ca4e145bf98c69fb/",
+        url: "https://ultra-dry-sheet.bsc.quiknode.pro/da7eedbc68bff1b7cf710e61ca4e145bf98c69fb", // JSON-RPC Endpoint for BSC (pancakeSwap)
       },
     },
     testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      url: "https://bsc-testnet-dataseed.bnbchain.org", // https://docs.bnbchain.org/docs/rpc/
       chainId: 97,
       accounts: [PRIVATE_KEY],
     },
     mainnet: {
-      url: "https://bsc-dataseed.binance.org/",
+      url: "https://bsc-dataseed.bnbchain.org",
       chainId: 56,
       accounts: [PRIVATE_KEY],
     },
