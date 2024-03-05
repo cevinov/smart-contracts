@@ -1,6 +1,5 @@
-// Wallet Addrest GOERLI testnet
 PRIVATE_KEY =
-  "0x52d5291354b9bdb23866e3c5c619ab9bd19b50c15272496296d4252a3eb63761";
+  "52d5291354b9bdb23866e3c5c619ab9bd19b50c15272496296d4252a3eb63761"; // MetaMask
 
 module.exports = {
   PRIVATE_KEY,
