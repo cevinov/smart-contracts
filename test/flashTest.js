@@ -1,13 +1,13 @@
 const { assert, expect } = require("chai");
-isTrue = true;
-describe("Test Basic", function () {
-  it("Return TRUE", async function () {
-    expect(isTrue).to.be.equal(true);
-  });
+const { ethers } = require("hardhat");
+describe("Test Flashloans Smart Contract", function () {
+  it("Check Name", async function () {
+    // Get and deploy flashloans smart contract
+    const FlashSwap = await ethers.getContractFactory("FlashSwap");
+    const flashSwap = await FlashSwap.deploy();
+    await flashSwap.deployed();
+    await flashSwap.setName("vino");
 
-  it("Check", async function () {
-    it("Valid", async function () {
-      assert(isTrue);
-    });
+    expect(await flashSwap.getName()).to.be.equal("vino");
   });
 });
