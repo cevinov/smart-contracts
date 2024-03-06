@@ -12,7 +12,7 @@ import "./interfaces/IUniswapV2Router02.sol";
 import "./libraries/UniswapV2Library.sol";
 import "./libraries/SafeERC20.sol";
 
-// Create a contract for a flash loan called FlashSwap
+// Create a contract for a flashloan called FlashSwap
 contract FlashSwap {
     // SafeERC20 contracts are required for matters that require approval on our behalf
     using SafeERC20 for IERC20;
@@ -37,22 +37,70 @@ contract FlashSwap {
     address private constant UNI = 0xBf5140A22578168FD562DCcF235E5D43A02ce9B1;
 
     // Set trade variables for SWAP operation
-    uint256 private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
-    uint256 private constant MAX_INT =
+    uint private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
+    uint private constant MAX_INT =
         115792089237316195423570985008687907853269984665640564039457584007913129639935; // Max integer value in Solidity that can be handled
 
     // Funding smart contracts (Increase token balance) to pay for gas fees or loans
     function fundFlashSwapContract(
         address _owner,
         address _token,
-        uint256 _amount
+        uint _amount
     ) public {
         IERC20(_token).transferFrom(_owner, address(this), _amount); // Address points to the address of this smart contract
     }
 
     // Check contract balance
-    function getTokenBalance(address _address) public view returns (uint256) {
+    function getTokenBalance(address _address) public view returns (uint) {
         // Will return the balance for all tokens in this contract
         return IERC20(_address).balanceOf(address(this));
     }
+
+    // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
+    function startArbitrage(
+        address _tokenBorrow,
+        uint _amount
+    ) external returns (bytes memory) {
+        // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
+        IERC20(BSCUSD).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(WBNB).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(XRP).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(ADA).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(AVAX).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(LINK).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(MATIC).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(LTC).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(UNI).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+
+        // Get pair address from getPair function, need pair address to call swap function
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
+            _tokenBorrow,
+            WBNB
+        );
+
+        // Check if combination not found
+        require(pair != address(0), "Pool doesn't exist for that token pair");
+
+        // Find out which of token0 (Base) or token1 (Quote) has the amount (From the loan)
+        address token0 = IUniswapV2Pair(pair).token0();
+        address token1 = IUniswapV2Pair(pair).token1();
+
+        // Check between token0 & token1 that have the same address as the token we borrowed.
+        uint amount0Out = _tokenBorrow == token0 ? _amount : 0;
+        uint amount1Out = _tokenBorrow == token1 ? _amount : 0;
+
+        // Passing the data as bytes by encoding it, so that the swap function can tell that it is for a flashloan
+        bytes memory data = abi.encode(_tokenBorrow, _amount);
+
+        // Execute swap to get the loan
+        IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data);
+    }
+
+    // Function to initiate arbitrage
+    function pancakeCall(
+        address _sender,
+        uint _amount0,
+        uint _amount1,
+        bytes calldata _data
+    ) external {}
 }
