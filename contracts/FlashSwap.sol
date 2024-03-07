@@ -89,7 +89,7 @@ contract FlashSwap {
         uint amount0Out = _tokenBorrow == token0 ? _amount : 0;
         uint amount1Out = _tokenBorrow == token1 ? _amount : 0;
 
-        // Passing the data as bytes by encoding it, so that the swap function can tell that it is for a flashloan
+        // Passing the data as bytes by encoding it, so that the pancakeCall function can know that it is for flashloans
         bytes memory data = abi.encode(_tokenBorrow, _amount);
 
         // Execute swap to get the loan
@@ -97,10 +97,40 @@ contract FlashSwap {
     }
 
     // Function to initiate arbitrage
+    // Make sure this function can only be called from this contract
     function pancakeCall(
         address _sender,
         uint _amount0,
         uint _amount1,
         bytes calldata _data
-    ) external {}
+    ) external {
+        // “msg.sender” represents the address of the account that called the function present within the smart contract.
+        address token0 = IUniswapV2Pair(msg.sender).token0();
+        address token1 = IUniswapV2Pair(msg.sender).token1();
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
+            token0,
+            token1
+        );
+
+        require(msg.sender == pair, "Sender matches pair address");
+        require(
+            _sender == address(this),
+            "The sender matches this contract address"
+        );
+
+        // Decode data to make loan payments
+        (address tokenBorrow, uint amount) = abi.decode(
+            _data,
+            (address, uint256)
+        );
+        uint fee = (amount * 3) / 997 + 1;
+        uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
+
+        // Step 1: Do Arbitration
+
+        // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
+
+        // Step 3: Pay loan + gas fee, if TRX is canceled then only pay gas fee
+        IERC20(tokenBorrow).transfer(pair, amountRepay);
+    }
 }
