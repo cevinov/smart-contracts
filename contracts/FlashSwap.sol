@@ -25,8 +25,7 @@ contract FlashSwap {
         0x10ED43C718714eb63d5aA57B78B54704E256024E;
 
     // List token address
-    address private constant BSCUSD =
-        0x55d398326f99059fF775485246999027B3197955;
+    address private constant DAI = 0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3;
     address private constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address private constant XRP = 0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE;
     address private constant ADA = 0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47;
@@ -62,7 +61,7 @@ contract FlashSwap {
         uint _amount
     ) external returns (bytes memory) {
         // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
-        IERC20(BSCUSD).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(DAI).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
         IERC20(WBNB).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
         IERC20(XRP).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
         IERC20(ADA).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
