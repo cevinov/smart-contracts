@@ -40,7 +40,7 @@ describe("Read and Write to the Blockchain", function () {
   // Function converts amount to readable format from blockchain format
   async function convertReadable(decimals, amount) {
     // Converts the amountOut value to a readable format
-    const amountStr = ethers.utils.formatUnits(amount, decimals).toString();
+    const amountStr = ethers.utils.formatUnits(amount, decimals);
     return amountStr;
   }
 
