@@ -3,7 +3,7 @@ const { assert, expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 // Testing loan repayment by funding smart contracts. By impersonating another account that has enough of the tokens we want to borrow
-// Check holders menu for this case
+// Check holders menu for this case from blockchain explorer
 const { impersonateFundErc20 } = require("../utils/utilities");
 
 // Import ABI from IERC20 contract
@@ -38,6 +38,7 @@ describe("Test FlashSwap Contract", function () {
 
     // Check if the whale account has a balance
     const balanceWhale = await tokenBase.balanceOf(DAIWhale);
+    // console.log(balanceWhale);
 
     // Get and deploy smart contract
     const FlashSwap = await ethers.getContractFactory("FlashSwap");
@@ -62,10 +63,20 @@ describe("Test FlashSwap Contract", function () {
     );
   });
 
-  // it("General Test", function () {
-  //   assert(flashSwap);
+  // Create test scenario
+  describe("Arbitrage Execution", async function () {
+    it("Check if contract is funded", async function () {
+      // Get contract balance
+      const flashSwapBalanceDec = await flashSwap.getTokenBalance(baseToken);
 
-  //   // Convert to readable format
-  //   console.log("Check :", flashSwap);
-  // });
+      // Convert to readable format
+      const flashSwapBalance = ethers.utils.formatUnits(
+        flashSwapBalanceDec,
+        decimals
+      );
+
+      // Check if the contract balance is equal to the initialized fund amount
+      expect(Number(flashSwapBalance)).equal(Number(initFund));
+    });
+  });
 });
