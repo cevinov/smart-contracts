@@ -55,6 +55,46 @@ contract FlashSwap {
         return IERC20(_address).balanceOf(address(this));
     }
 
+    // Place a trade
+    function trade(
+        address _fromToken,
+        address _toToken,
+        uint _amountIn
+    ) private returns (uint) {
+        // This function will place trades
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
+            _fromToken,
+            _toToken
+        );
+        require(pair != address(0), "Pool doesn't exist for that token pair");
+
+        // Calculate the amount of tokens we will have after the swap
+        address[] memory path = new address[](2); // Only allows two addresses
+        path[0] = _fromToken;
+        path[1] = _toToken;
+
+        uint amountRequired = IUniswapV2Router01(PANCAKE_ROUTER).getAmountsOut(
+            _amountIn,
+            path
+        )[1];
+        console.log("amountRequired:", amountRequired);
+
+        // Perform token swaps for triangular arbitrage
+        uint amountReceived = IUniswapV2Router01(PANCAKE_ROUTER)
+            .swapExactTokensForTokens(
+                _amountIn,
+                amountRequired,
+                path,
+                address(this),
+                deadline
+            )[1];
+        console.log("amountReceived:", amountReceived);
+
+        // Check if the output value we get after the swap is positive
+        require(amountReceived > 0, "Cancel TRX, not profitable");
+        return amountReceived;
+    }
+
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startArbitrage(
         address _tokenBorrow,
@@ -129,7 +169,8 @@ contract FlashSwap {
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
 
-        // Step 3: Pay loan + gas fee, if TRX is canceled then only pay gas fee
+        // Step 3: Pay loan + fee, if the flashSwap process is canceled then only pay the gas fee
+        // And for the gas fee itself we need to approve it from the wallet, we need to pay for the gas before we deploy the code to the blockchain network.
         IERC20(tokenBorrow).transfer(pair, amountRepay);
     }
 }
