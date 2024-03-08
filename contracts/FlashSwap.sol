@@ -122,7 +122,7 @@ contract FlashSwap {
         // Decode data to make loan payments
         (address tokenBorrow, uint256 amount) = abi.decode(
             _data,
-            (address, uint256256)
+            (address, uint256)
         );
         uint256 fee = (amount * 3) / 997 + 1;
         uint256 amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
