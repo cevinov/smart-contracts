@@ -92,7 +92,9 @@ contract FlashSwap {
         bytes memory data = abi.encode(_tokenBorrow, _amount);
 
         // Execute swap to get the loan
+        // address(this) refers to the address of the instance of the contract where the call is being made.
         IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data);
+        // https://ethereum.stackexchange.com/questions/40018/what-is-addressthis-in-solidity
     }
 
     // Function to initiate arbitrage
