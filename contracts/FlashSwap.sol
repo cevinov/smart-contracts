@@ -36,21 +36,21 @@ contract FlashSwap {
     address private constant UNI = 0xBf5140A22578168FD562DCcF235E5D43A02ce9B1;
 
     // Set trade variables for SWAP operation
-    uint256 private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
-    uint256 private constant MAX_INT =
+    uint private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
+    uint private constant MAX_INT =
         115792089237316195423570985008687907853269984665640564039457584007913129639935; // Max integer value in Solidity that can be handled
 
     // Funding smart contracts (Increase token balance) to pay for gas fees or loans
     function fundFlashSwapContract(
         address _owner,
         address _token,
-        uint256 _amount
+        uint _amount
     ) public {
         IERC20(_token).transferFrom(_owner, address(this), _amount); // Address points to the address of this smart contract
     }
 
     // Check contract balance
-    function getTokenBalance(address _address) public view returns (uint256) {
+    function getTokenBalance(address _address) public view returns (uint) {
         // Will return the balance for all tokens in this contract
         return IERC20(_address).balanceOf(address(this));
     }
@@ -58,18 +58,19 @@ contract FlashSwap {
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startArbitrage(
         address _tokenBorrow,
-        uint256 _amount
+        uint _amount
     ) external returns (bytes memory) {
         // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
-        IERC20(DAI).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(WBNB).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(XRP).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(ADA).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(AVAX).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(LINK).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(MATIC).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(LTC).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(UNI).safeTransfer(address(PANCAKE_ROUTER), MAX_INT);
+        // https://ethereum.stackexchange.com/questions/140117/whats-the-benefit-of-using-safeerc20
+        IERC20(DAI).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(WBNB).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(XRP).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(ADA).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(AVAX).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(LINK).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(MATIC).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(LTC).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(UNI).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
 
         // Get pair address from getPair function, need pair address to call swap function
         address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
@@ -85,8 +86,8 @@ contract FlashSwap {
         address token1 = IUniswapV2Pair(pair).token1();
 
         // Check between token0 & token1 that have the same address as the token we borrowed.
-        uint256 amount0Out = _tokenBorrow == token0 ? _amount : 0;
-        uint256 amount1Out = _tokenBorrow == token1 ? _amount : 0;
+        uint amount0Out = _tokenBorrow == token0 ? _amount : 0;
+        uint amount1Out = _tokenBorrow == token1 ? _amount : 0;
 
         // Passing the data as bytes by encoding it, so that the pancakeCall function can know that it is for flashloans
         bytes memory data = abi.encode(_tokenBorrow, _amount);
@@ -101,8 +102,8 @@ contract FlashSwap {
     // Make sure this function can only be called from this contract
     function pancakeCall(
         address _sender,
-        uint256 _amount0,
-        uint256 _amount1,
+        uint _amount0,
+        uint _amount1,
         bytes calldata _data
     ) external {
         // “msg.sender” represents the address of the account that called the function present within the smart contract.
@@ -120,12 +121,9 @@ contract FlashSwap {
         );
 
         // Decode data to make loan payments
-        (address tokenBorrow, uint256 amount) = abi.decode(
-            _data,
-            (address, uint256)
-        );
-        uint256 fee = (amount * 3) / 997 + 1;
-        uint256 amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
+        (address tokenBorrow, uint amount) = abi.decode(_data, (address, uint));
+        uint fee = (amount * 3) / 997 + 1;
+        uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
 
         // Step 1: Do Arbitration
 

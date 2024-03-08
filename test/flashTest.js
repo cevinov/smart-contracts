@@ -49,7 +49,7 @@ describe("Test FlashSwap Contract", function () {
     const loanAmount = "10"; // 10 DAI
     loanAmountDec = ethers.utils.parseUnits(loanAmount, decimals);
 
-    // Configure funding amount to payback the loan
+    // Configure the funding amount to buy tokens in this case 10 DAI (Make sure we can handle the loan fees)
     initFund = "100"; // 100 DAI
     fundAmount = ethers.utils.parseUnits(initFund, decimals);
 
@@ -63,7 +63,7 @@ describe("Test FlashSwap Contract", function () {
     );
   });
 
-  // Create test scenario
+  // Test scenario contract has balance
   describe("Arbitrage Execution", async function () {
     it("Check if contract is funded", async function () {
       // Get contract balance
@@ -78,5 +78,21 @@ describe("Test FlashSwap Contract", function () {
       // Check if the contract balance is equal to the initialized fund amount
       expect(Number(flashSwapBalance)).equal(Number(initFund));
     });
+  });
+
+  it("Execute the arbitrage", async function () {
+    // Create an arbitration contract to make a flashloan by doing swap
+    trxArb = await flashSwap.startArbitrage(DAI, loanAmountDec);
+    console.log(trxArb);
+    assert("TRX:", trxArb);
+
+    // Test getting the token balance that we borrowed from the smart contract that will perform flashSwap
+    const contractBalanceDAIDec = await flashSwap.getTokenBalance(DAI);
+    const contractBalanceDAI = Number(
+      ethers.utils.formatUnits(contractBalanceDAIDec, decimals)
+    );
+
+    // Token balance decreases, as we pay loan fees (3%)
+    console.log("Balance of DAI:", contractBalanceDAI);
   });
 });
