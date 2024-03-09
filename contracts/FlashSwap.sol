@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
+// For debugging using console.log
 import "hardhat/console.sol";
 
 // Import uniswap interfaces and libraries. Interact with other contracts on the blockchain, within our smart contract
@@ -26,13 +27,9 @@ contract FlashSwap {
 
     // List token address
     address private constant DAI = 0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3;
+    address private constant USDC = 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d;
     address private constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
-    address private constant XRP = 0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE;
-    address private constant ADA = 0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47;
-    address private constant AVAX = 0x1CE0c2827e2eF14D5C4f29a091d735A204794041;
-    address private constant LINK = 0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD;
-    address private constant MATIC = 0xCC42724C6683B7E57334c4E856f4c9965ED682bD;
-    address private constant LTC = 0x4338665CBB7B2485A8855A139b75D5e34AB0DB94;
+    address private constant CAKE = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
     address private constant UNI = 0xBf5140A22578168FD562DCcF235E5D43A02ce9B1;
 
     // Set trade variables for SWAP operation
@@ -49,14 +46,14 @@ contract FlashSwap {
         IERC20(_token).transferFrom(_owner, address(this), _amount); // Address points to the address of this smart contract
     }
 
-    // Check contract balance
+    // Check token balance
     function getTokenBalance(address _address) public view returns (uint) {
         // Will return the balance for all tokens in this contract
         return IERC20(_address).balanceOf(address(this));
     }
 
     // Place a trade
-    function trade(
+    function tradeSwap(
         address _fromToken,
         address _toToken,
         uint _amountIn
@@ -77,9 +74,10 @@ contract FlashSwap {
             _amountIn,
             path
         )[1];
-        console.log("amountRequired:", amountRequired);
+        console.log("\namountRequired:", amountRequired);
 
         // Perform token swaps for triangular arbitrage
+        // A > B || B > C || C > A
         uint amountReceived = IUniswapV2Router01(PANCAKE_ROUTER)
             .swapExactTokensForTokens(
                 _amountIn,
@@ -89,6 +87,7 @@ contract FlashSwap {
                 deadline
             )[1];
         console.log("amountReceived:", amountReceived);
+        // Make sure the values between amountRequired and amountReceived have the same amount
 
         // Check if the output value we get after the swap is positive
         require(amountReceived > 0, "Cancel TRX, not profitable");
@@ -98,24 +97,17 @@ contract FlashSwap {
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startArbitrage(
         address _tokenBorrow,
+        address _dummyToken, // This token is only used to request a flashloan
         uint _amount
     ) external returns (bytes memory) {
         // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
         // https://ethereum.stackexchange.com/questions/140117/whats-the-benefit-of-using-safeerc20
-        IERC20(DAI).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(WBNB).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(XRP).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(ADA).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(AVAX).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(LINK).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(MATIC).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(LTC).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
-        IERC20(UNI).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(DAI).safeApprove(address(PANCAKE_ROUTER), MAX_INT); // Approved loan for DAI to initiate swap (Triangular Arbitrage)
 
         // Get pair address from getPair function, need pair address to call swap function
         address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
             _tokenBorrow,
-            WBNB
+            _dummyToken
         );
 
         // Check if combination not found
@@ -165,12 +157,18 @@ contract FlashSwap {
         uint fee = (amount * 3) / 997 + 1;
         uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
 
-        // Step 1: Do Arbitration
+        // Step 1: Do Arbitration (Swap)
+        // Check the amount of tokens we borrowed in the first place
+        uint loanAmount = _amount0 > 0 ? _amount0 : _amount1;
+
+        // The swap is successful, if the initial amount of funds decreases due to the loan amount (10 DAI)
+        uint acquiredCoinT1 = tradeSwap(DAI, CAKE, loanAmount); // In this case, 10 DAI get swapped to CAKE.
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
 
         // Step 3: Pay loan + fee, if the flashSwap process is canceled then only pay the gas fee
         // And for the gas fee itself we need to approve it from the wallet, we need to pay for the gas before we deploy the code to the blockchain network.
         IERC20(tokenBorrow).transfer(pair, amountRepay);
+        // If we don't have enough to pay then the code can never be deployed.
     }
 }

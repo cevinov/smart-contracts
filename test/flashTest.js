@@ -18,11 +18,17 @@ describe("Test FlashSwap Contract", function () {
   let flashSwap, loanAmountDec, fundAmount, initFund, trxArb, gassUsedIDR;
 
   const decimals = 18;
+
+  // Address of the top holder of the DAI token, which we use as a funding source when doing flashloan
   const DAIWhale = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
+
+  // Dummy token only to start a flashloan
+  const USDC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+
+  // This is a list of tokens as a triangular arbitration group
   const DAI = "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3";
   const WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
-  const XRP = "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe";
-  const ADA = "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47";
+  const CAKE = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82";
 
   // Starting capital with DAI token
   const baseToken = DAI;
@@ -46,10 +52,10 @@ describe("Test FlashSwap Contract", function () {
     await flashSwap.deployed(); // deployed() will wait until it has been
 
     // Configuring the loan amount
-    const loanAmount = "10"; // 10 DAI
+    const loanAmount = "10"; // This value will be used when swapping to another token from DAI.
     loanAmountDec = ethers.utils.parseUnits(loanAmount, decimals);
 
-    // Configure the funding amount to buy tokens in this case 10 DAI (Make sure we can handle the loan fees)
+    // Configure the funding amount to buy tokens in this case 100 DAI (Make sure we can handle the loan fees)
     initFund = "100"; // 100 DAI
     fundAmount = ethers.utils.parseUnits(initFund, decimals);
 
@@ -82,17 +88,26 @@ describe("Test FlashSwap Contract", function () {
 
   it("Execute the arbitrage", async function () {
     // Create an arbitration contract to make a flashloan by doing swap
-    trxArb = await flashSwap.startArbitrage(DAI, loanAmountDec);
-    console.log(trxArb);
+    trxArb = await flashSwap.startArbitrage(DAI, USDC, loanAmountDec); // Request a loan
+    // console.log(trxArb);
     assert("TRX:", trxArb);
 
-    // Test getting the token balance that we borrowed from the smart contract that will perform flashSwap
+    // Get the token balance we borrowed after doing flashloan
     const contractBalanceDAIDec = await flashSwap.getTokenBalance(DAI);
     const contractBalanceDAI = Number(
       ethers.utils.formatUnits(contractBalanceDAIDec, decimals)
     );
 
-    // Token balance decreases, as we pay loan fees (3%)
+    console.log(`\n\nStart with ${initFund} DAI`);
+    // Token balance decreases, as we pay loan fees (3%) + Swap 10 DAI to CAKE
     console.log("Balance of DAI:", contractBalanceDAI);
+
+    // Check balance for CAKE token as target token swap
+    const contractBalanceCAKEDec = await flashSwap.getTokenBalance(CAKE);
+    const contractBalanceCAKE = ethers.utils.formatUnits(
+      contractBalanceCAKEDec,
+      decimals
+    ); // Convert to readable format
+    console.log("Balance of CAKE:", contractBalanceCAKE);
   });
 });
