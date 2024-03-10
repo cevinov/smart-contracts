@@ -94,6 +94,14 @@ contract FlashSwap {
         return amountReceived;
     }
 
+    // Check profitability after completing the swap
+    function checkProfitability(
+        uint _input,
+        uint _output
+    ) private pure returns (bool) {
+        return _output > _input ? true : false;
+    }
+
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startArbitrage(
         address _tokenBorrow,
@@ -155,7 +163,7 @@ contract FlashSwap {
         // Decode data to make loan payments
         (address tokenBorrow, uint amount) = abi.decode(_data, (address, uint));
         uint fee = (amount * 3) / 997 + 1;
-        uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee
+        uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee 3%
 
         // Step 1: Do Arbitration (Swap)
         // Check the amount of tokens we borrowed in the first place
@@ -163,12 +171,38 @@ contract FlashSwap {
 
         // The swap is successful, if the initial amount of funds decreases due to the loan amount (10 DAI)
         uint acquiredCoinT1 = tradeSwap(DAI, CAKE, loanAmount); // In this case, 10 DAI get swapped to CAKE.
+        console.log(
+            "CAKE balance after first swap:",
+            IERC20(CAKE).balanceOf(address(this))
+        );
+        require(acquiredCoinT1 > 0, "First swap failed");
+
+        // Approve CAKE token transfer
+        IERC20(CAKE).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+
+        // Swap CAKE for BNB, with the amount we have after swapping 10 DAI for CAKE
+        uint acquiredCoinT2 = tradeSwap(CAKE, WBNB, acquiredCoinT1);
+        console.log(
+            "WBNB balance after second swap:",
+            IERC20(WBNB).balanceOf(address(this))
+        );
+        require(acquiredCoinT2 > 0, "Second swap failed"); // Make sure we get the value after the swap
+
+        // Approve WBNB token transfer
+        IERC20(WBNB).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+
+        // Final swap BNB for DAI
+        uint acquiredCoinT3 = tradeSwap(WBNB, DAI, acquiredCoinT2);
+
+        // Check if our swap triangular arbitrage is profitable
+        // bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
+        // require(isProfit, "Not Profitable!!!");
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
 
         // Step 3: Pay loan + fee, if the flashSwap process is canceled then only pay the gas fee
         // And for the gas fee itself we need to approve it from the wallet, we need to pay for the gas before we deploy the code to the blockchain network.
         IERC20(tokenBorrow).transfer(pair, amountRepay);
-        // If we don't have enough to pay then the code can never be deployed.
+        // If we don't have enough to pay then the code can never be deployed (INSUFFICIENT_INPUT_AMOUNT).
     }
 }

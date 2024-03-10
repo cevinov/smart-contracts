@@ -27,8 +27,8 @@ describe("Test FlashSwap Contract", function () {
 
   // This is a list of tokens as a triangular arbitration group
   const DAI = "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3";
-  const WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
   const CAKE = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82";
+  const WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
 
   // Starting capital with DAI token
   const baseToken = DAI;
@@ -80,9 +80,16 @@ describe("Test FlashSwap Contract", function () {
         flashSwapBalanceDec,
         decimals
       );
+      // console.log("Fund:", flashSwapBalance);
 
       // Check if the contract balance is equal to the initialized fund amount
       expect(Number(flashSwapBalance)).equal(Number(initFund));
+
+      const contractBalanceWBNBDec = await flashSwap.getTokenBalance(WBNB);
+      const contractBalanceWBNB = ethers.utils.formatUnits(
+        contractBalanceWBNBDec,
+        decimals
+      ); // Convert to readable format
     });
   });
 
@@ -98,16 +105,32 @@ describe("Test FlashSwap Contract", function () {
       ethers.utils.formatUnits(contractBalanceDAIDec, decimals)
     );
 
+    // Start Swapping
     console.log(`\n\nStart with ${initFund} DAI`);
     // Token balance decreases, as we pay loan fees (3%) + Swap 10 DAI to CAKE
-    console.log("Balance of DAI:", contractBalanceDAI);
 
-    // Check balance for CAKE token as target token swap
+    // 1. Check balance for CAKE token as target token swap (DAI to CAKE)
     const contractBalanceCAKEDec = await flashSwap.getTokenBalance(CAKE);
     const contractBalanceCAKE = ethers.utils.formatUnits(
       contractBalanceCAKEDec,
       decimals
     ); // Convert to readable format
     console.log("Balance of CAKE:", contractBalanceCAKE);
+
+    // 2. Swap CAKE for WBNB
+    // const contractBalanceWBNBDec = await flashSwap.getTokenBalance(WBNB);
+    const contractBalanceWBNBDec = await flashSwap.getTokenBalance(WBNB);
+    const contractBalanceWBNB = ethers.utils.formatUnits(
+      contractBalanceWBNBDec,
+      decimals
+    ); // Convert to readable format
+    console.log("Balance of WBNB:", contractBalanceWBNB);
+
+    // 3. Swap WBNB for DAI
+    const finalBalanceDAIDec = await flashSwap.getTokenBalance(DAI);
+    const finalBalanceDAI = Number(
+      ethers.utils.formatUnits(finalBalanceDAIDec, decimals)
+    );
+    console.log("Balance of DAI after swap:", finalBalanceDAI);
   });
 });
