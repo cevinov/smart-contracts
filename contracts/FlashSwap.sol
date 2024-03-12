@@ -103,7 +103,7 @@ contract FlashSwap {
     }
 
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
-    function startArbitrage(
+    function startLoan(
         address _tokenBorrow,
         address _dummyToken, // This token is only used to request a flashloan
         uint _amount
@@ -118,6 +118,10 @@ contract FlashSwap {
             _dummyToken
         );
 
+        // Encode this address, this address will be used to store profit after swap
+        address myAddress = msg.sender;
+        console.log("Account that initiated the loan:", myAddress);
+
         // Check if combination not found
         require(pair != address(0), "Pool doesn't exist for that token pair");
 
@@ -130,7 +134,7 @@ contract FlashSwap {
         uint amount1Out = _tokenBorrow == token1 ? _amount : 0;
 
         // Passing the data as bytes by encoding it, so that the pancakeCall function can know that it is for flashloans
-        bytes memory data = abi.encode(_tokenBorrow, _amount);
+        bytes memory data = abi.encode(_tokenBorrow, _amount, myAddress);
 
         // Execute swap to get the loan
         // address(this) refers to the address of the instance of the contract where the call is being made.
@@ -138,7 +142,7 @@ contract FlashSwap {
         // https://ethereum.stackexchange.com/questions/40018/what-is-addressthis-in-solidity
     }
 
-    // Function to initiate arbitrage
+    // Function to initiate arbitrage, conduct an arbitrary logic with the funds we already receive
     // Make sure this function can only be called from this contract
     function pancakeCall(
         address _sender,
@@ -161,7 +165,10 @@ contract FlashSwap {
         );
 
         // Decode data to make loan payments
-        (address tokenBorrow, uint amount) = abi.decode(_data, (address, uint));
+        (address tokenBorrow, uint amount, address myAddress) = abi.decode(
+            _data,
+            (address, uint, address)
+        );
         uint fee = (amount * 3) / 997 + 1;
         uint amountRepay = amount + fee; // Amount of tokens we have to pay includes the fee 3%
 
@@ -195,7 +202,7 @@ contract FlashSwap {
         uint acquiredCoinT3 = tradeSwap(WBNB, DAI, acquiredCoinT2);
 
         // Check if our swap triangular arbitrage is profitable
-        // bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
+        bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
         // require(isProfit, "Not Profitable!!!");
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
@@ -204,5 +211,6 @@ contract FlashSwap {
         // And for the gas fee itself we need to approve it from the wallet, we need to pay for the gas before we deploy the code to the blockchain network.
         IERC20(tokenBorrow).transfer(pair, amountRepay);
         // If we don't have enough to pay then the code can never be deployed (INSUFFICIENT_INPUT_AMOUNT).
+        console.log("My Address:", myAddress);
     }
 }

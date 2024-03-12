@@ -95,7 +95,7 @@ describe("Test FlashSwap Contract", function () {
 
   it("Execute the arbitrage", async function () {
     // Create an arbitration contract to make a flashloan by doing swap
-    trxArb = await flashSwap.startArbitrage(DAI, USDC, loanAmountDec); // Request a loan
+    trxArb = await flashSwap.startLoan(DAI, USDC, loanAmountDec); // Request a loan
     // console.log(trxArb);
     assert("TRX:", trxArb);
 
