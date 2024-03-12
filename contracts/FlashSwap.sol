@@ -216,5 +216,13 @@ contract FlashSwap {
         IERC20(tokenBorrow).transfer(pair, amountRepay);
         // If we don't have enough to pay then the code can never be deployed (INSUFFICIENT_INPUT_AMOUNT).
         console.log("My Address:", myAddress);
+
+        // Deploy contract to fork mainnet
+        // https://hardhat.org/hardhat-runner/docs/guides/deploying
+
+        // To confirm whether our deployment was successful, we can check it directly into the blockchain explorer
+        // https://testnet.bscscan.com/address/0x28d40a1c05ace3ae7ce42e289a14cb8268ace2e4
+
+        // And also check if the balance is reduced due to TRX fees (gas fees)
     }
 }

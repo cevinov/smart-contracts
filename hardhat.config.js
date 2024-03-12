@@ -41,12 +41,11 @@ module.exports = {
     testnet: {
       url: "https://bsc-testnet-dataseed.bnbchain.org", // https://docs.bnbchain.org/docs/rpc/
       chainId: 97,
-      accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY], // Private key of test account on metamask for BSC network
     },
     mainnet: {
       url: "https://bsc-dataseed.bnbchain.org",
       chainId: 56,
-      accounts: [PRIVATE_KEY],
     },
   },
 };
