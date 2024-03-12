@@ -203,7 +203,11 @@ contract FlashSwap {
 
         // Check if our swap triangular arbitrage is profitable
         bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
-        // require(isProfit, "Not Profitable!!!");
+        require(isProfit, "Not Profitable!!!");
+
+        // Take the profit we earned to myAddress, before completing the TRX by returning the loan
+        IERC20 otherToken = IERC20(DAI); // Profit in DAI
+        otherToken.transfer(myAddress, acquiredCoinT3 - amountRepay);
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
 
