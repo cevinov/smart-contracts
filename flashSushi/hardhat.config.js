@@ -35,17 +35,16 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://ultra-dry-sheet.bsc.quiknode.pro/da7eedbc68bff1b7cf710e61ca4e145bf98c69fb", // JSON-RPC Endpoint for BSC (PancakeSwap - Quicknode)
+        url: "https://mainnet.infura.io/v3/5ab76f78c3f34a36b1c7e23bede5d927", // JSON-RPC Endpoint for ETH mainnet (SushiSwap - Infura)
       },
     },
     testnet: {
-      url: "https://bsc-testnet-dataseed.bnbchain.org", // https://docs.bnbchain.org/docs/rpc/
-      chainId: 97,
-      accounts: [PRIVATE_KEY], // Private key for test account on metamask for BSC network
+      url: "https://sepolia.infura.io/v3/5ab76f78c3f34a36b1c7e23bede5d927",
+      accounts: [PRIVATE_KEY], // Private key for test account on metamask for Ethereum network
     },
     mainnet: {
-      url: "https://bsc-dataseed.bnbchain.org",
-      chainId: 56,
+      url: "https://mainnet.infura.io/v3/5ab76f78c3f34a36b1c7e23bede5d927",
+      accounts: [PRIVATE_KEY],
     },
   },
 };

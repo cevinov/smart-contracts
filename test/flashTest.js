@@ -14,7 +14,7 @@ const {
 // Connected to mainnet blockchain with waffle as provider
 const provider = waffle.provider;
 
-describe("Test FlashSwap Contract (PancakeSwap)", function () {
+describe("Test FlashSwap Contract (SushiSwap)", function () {
   let flashSwap, loanAmountDec, fundAmount, initFund, trxArb, gassUsedIDR;
 
   const decimals = 18;
