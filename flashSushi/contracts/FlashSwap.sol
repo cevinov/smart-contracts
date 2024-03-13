@@ -26,11 +26,9 @@ contract FlashSwap {
         0x10ED43C718714eb63d5aA57B78B54704E256024E;
 
     // List token address
-    address private constant DAI = 0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3;
-    address private constant USDC = 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d;
     address private constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address private constant CAKE = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
-    address private constant UNI = 0xBf5140A22578168FD562DCcF235E5D43A02ce9B1;
+    address private constant ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
 
     // Set trade variables for SWAP operation
     uint private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
@@ -39,11 +37,11 @@ contract FlashSwap {
 
     // Funding smart contracts (Increase token balance) to pay for gas fees or loans
     function fundFlashSwapContract(
-        address _owner,
+        address _myAddress,
         address _token,
         uint _amount
     ) public {
-        IERC20(_token).transferFrom(_owner, address(this), _amount); // Address points to the address of this smart contract
+        IERC20(_token).transferFrom(_myAddress, address(this), _amount); // Address points to the address of this smart contract
     }
 
     // Check token balance
@@ -105,12 +103,12 @@ contract FlashSwap {
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startLoan(
         address _tokenBorrow,
-        address _dummyToken, // This token is only used to request a flashloan
+        address _dummyToken, // This token is used to get the address of the token that has been borrowed (ETH)
         uint _amount
     ) external returns (bytes memory) {
         // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
         // https://ethereum.stackexchange.com/questions/140117/whats-the-benefit-of-using-safeerc20
-        IERC20(DAI).safeApprove(address(PANCAKE_ROUTER), MAX_INT); // Approved loan for DAI to initiate swap (Triangular Arbitrage)
+        IERC20(_tokenBorrow).safeApprove(address(PANCAKE_ROUTER), MAX_INT); // Approved loan for ETH to initiate swap (Triangular Arbitrage)
 
         // Get pair address from getPair function, need pair address to call swap function
         address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
@@ -131,7 +129,10 @@ contract FlashSwap {
 
         // Check between token0 & token1 that have the same address as the token we borrowed.
         uint amount0Out = _tokenBorrow == token0 ? _amount : 0;
+        console.log("Amount0:", amount0Out);
+
         uint amount1Out = _tokenBorrow == token1 ? _amount : 0;
+        console.log("Amount1:", amount1Out);
 
         // Passing the data as bytes by encoding it, so that the pancakeCall function can know that it is for flashloans
         bytes memory data = abi.encode(_tokenBorrow, _amount, myAddress);
@@ -175,9 +176,10 @@ contract FlashSwap {
         // Step 1: Do Arbitration (Swap)
         // Check the amount of tokens we borrowed in the first place
         uint loanAmount = _amount0 > 0 ? _amount0 : _amount1;
+        console.log("Loan Amount:", loanAmount);
 
-        // The swap is successful, if the initial amount of funds decreases due to the loan amount (10 DAI)
-        uint acquiredCoinT1 = tradeSwap(DAI, CAKE, loanAmount); // In this case, 10 DAI get swapped to CAKE.
+        // The swap is successful, if the initial amount of funds decreases due to the loan amount (10 ETH)
+        uint acquiredCoinT1 = tradeSwap(ETH, CAKE, loanAmount); // In this case, 10 ETH get swapped to CAKE.
         console.log(
             "CAKE balance after first swap:",
             IERC20(CAKE).balanceOf(address(this))
@@ -187,7 +189,7 @@ contract FlashSwap {
         // Approve CAKE token transfer
         IERC20(CAKE).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
 
-        // Swap CAKE for BNB, with the amount we have after swapping 10 DAI for CAKE
+        // Swap CAKE for BNB, with the amount we have after swapping 10 ETH for CAKE
         uint acquiredCoinT2 = tradeSwap(CAKE, WBNB, acquiredCoinT1);
         console.log(
             "WBNB balance after second swap:",
@@ -196,26 +198,31 @@ contract FlashSwap {
         require(acquiredCoinT2 > 0, "Second swap failed"); // Make sure we get the value after the swap
 
         // Approve WBNB token transfer
-        IERC20(WBNB).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+        IERC20(WBNB).approve(address(PANCAKE_ROUTER), MAX_INT);
 
-        // Final swap BNB for DAI
-        uint acquiredCoinT3 = tradeSwap(WBNB, DAI, acquiredCoinT2);
+        // Final swap BNB for ETH
+        uint acquiredCoinT3 = tradeSwap(WBNB, ETH, acquiredCoinT2);
+        IERC20(ETH).approve(address(PANCAKE_ROUTER), MAX_INT);
 
         // Check if our swap triangular arbitrage is profitable
         bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
+
+        // The require keyword is the same as the if condition, the difference is that this keyword will force the program to exit if the requirement is not met.
         // require(isProfit, "Not Profitable!!!");
 
-        // Take the profit we earned to myAddress, before completing the TRX by returning the loan
-        // IERC20 otherToken = IERC20(DAI); // Profit in DAI
-        // otherToken.transfer(myAddress, acquiredCoinT3 - amountRepay);
-
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
+        // Take the profit we earned to myAddress, before completing the TRX by returning the loan
+        if (isProfit) {
+            IERC20 otherToken = IERC20(ETH); // Profit in ETH
+            otherToken.transfer(myAddress, acquiredCoinT3 - amountRepay);
+        }
 
-        // Step 3: Pay loan + fee, if the flashSwap process is canceled then only pay the gas fee
-        // And for the gas fee itself we need to approve it from the wallet, we need to pay for the gas before we deploy the code to the blockchain network.
-        // IERC20(tokenBorrow).transfer(pair, amountRepay);
-        // If we don't have enough to pay then the code can never be deployed (INSUFFICIENT_INPUT_AMOUNT).
-        // console.log("My Address:", myAddress);
+        // Step 3: Return borrowed funds + pay gas fees
+        // We need to pay for the gas before we deploy the code to the blockchain network.
+        IERC20(tokenBorrow).transfer(pair, amountRepay);
+
+        // If we don't have enough to pay then the code can never be deployed (BEP20: transfer amount exceeds balance).
+        console.log("My Address:", myAddress);
 
         // Deploy contract to fork mainnet
         // https://hardhat.org/hardhat-runner/docs/guides/deploying
@@ -223,6 +230,6 @@ contract FlashSwap {
         // To confirm whether our deployment was successful, we can check it directly into the blockchain explorer
         // https://testnet.bscscan.com/address/0x28d40a1c05ace3ae7ce42e289a14cb8268ace2e4
 
-        // And also check if the balance is reduced due to TRX fees (gas fees)
+        // And also check if the balance in the wallet is reduced due to TRX fees (gas fees)
     }
 }
