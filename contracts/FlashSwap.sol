@@ -13,28 +13,22 @@ import "./interfaces/IUniswapV2Router02.sol";
 import "./libraries/UniswapV2Library.sol";
 import "./libraries/SafeERC20.sol";
 
-// Create a contract for a flashloan called FlashSwapCross (Cross swap between two exchanges UniSwap and SushiSwap)
-contract FlashSwapCross {
+// Create a contract for a flashloan called FlashSwap
+contract FlashSwap {
     // SafeERC20 contracts are required for matters that require approval on our behalf
     using SafeERC20 for IERC20;
 
-    // Factory and routing address DEX (UniSwap and SushiSwap)
-    // https://docs.uniswap.org/contracts/v2/reference/smart-contracts/v2-deployments
-    address private constant UNISWAP_FACTORY_V2 =
-        0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
-    address private constant UNISWAP_ROUTER_V2 =
-        0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-
-    // https://dev.sushi.com/docs/Developers/Deployment%20Addresses
-    address private constant SUSHISWAP_FACTORY_V2 =
-        0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac;
-    address private constant SUSHISWAP_ROUTER_V2 =
-        0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+    // Factory and routing address DEX (PancakeSwap)
+    // https://docs.pancakeswap.finance/developers/smart-contracts/pancakeswap-exchange/v2-contracts
+    address private constant PANCAKE_FACTORY =
+        0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;
+    address private constant PANCAKE_ROUTER =
+        0x10ED43C718714eb63d5aA57B78B54704E256024E;
 
     // List token address
-    address private constant BNB = 0xB8c77482e45F1F44dE1745F52C74426C631bDD52;
-    address private constant UNI = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
-    address private constant MKR = 0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2;
+    address private constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address private constant CAKE = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
+    address private constant ETH = 0x2170Ed0880ac9A755fd29B2688956BD959F933F8;
 
     // Set trade variables for SWAP operation
     uint private deadline = block.timestamp + 1 days; // Ensures the transaction reverts if it takes longer than 1 day to execute.
@@ -60,12 +54,13 @@ contract FlashSwapCross {
     function tradeSwap(
         address _fromToken,
         address _toToken,
-        uint _amountIn,
-        address factory,
-        address router
+        uint _amountIn
     ) private returns (uint) {
         // This function will place trades
-        address pair = IUniswapV2Factory(factory).getPair(_fromToken, _toToken);
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
+            _fromToken,
+            _toToken
+        );
         require(pair != address(0), "Pool doesn't exist for that token pair");
 
         // Calculate the amount of tokens we will have after the swap
@@ -73,7 +68,7 @@ contract FlashSwapCross {
         path[0] = _fromToken;
         path[1] = _toToken;
 
-        uint amountRequired = IUniswapV2Router01(router).getAmountsOut(
+        uint amountRequired = IUniswapV2Router01(PANCAKE_ROUTER).getAmountsOut(
             _amountIn,
             path
         )[1];
@@ -81,7 +76,7 @@ contract FlashSwapCross {
 
         // Perform token swaps for triangular arbitrage
         // A > B || B > C || C > A
-        uint amountReceived = IUniswapV2Router01(router)
+        uint amountReceived = IUniswapV2Router01(PANCAKE_ROUTER)
             .swapExactTokensForTokens(
                 _amountIn,
                 amountRequired,
@@ -108,23 +103,18 @@ contract FlashSwapCross {
     // Getting a loan to conduct a flashloan arbitration (Can NOT be used in inherited contract)
     function startLoan(
         address _tokenBorrow,
-        address _dummyToken, // This token is used to get the address of the token that has been borrowed (MKR)
+        address _dummyToken, // This token is used to get the address of the token that has been borrowed (ETH)
         uint _amount
     ) external returns (bytes memory) {
         // Approve the transaction on behalf of, where the address we provide is the address of the ROUTER that will perform the swap.
         // https://ethereum.stackexchange.com/questions/140117/whats-the-benefit-of-using-safeerc20
-        IERC20(_tokenBorrow).safeApprove(address(UNISWAP_ROUTER_V2), MAX_INT); // Approved loan for MKR to initiate swap (Triangular Arbitrage)
-        IERC20(_tokenBorrow).safeApprove(address(SUSHISWAP_ROUTER_V2), MAX_INT); // Smart contracts can create TRX based on router addresses
+        IERC20(_tokenBorrow).safeApprove(address(PANCAKE_ROUTER), MAX_INT); // Approved loan for ETH to initiate swap (Triangular Arbitrage)
 
         // Get pair address from getPair function, need pair address to call swap function
-        address pair = IUniswapV2Factory(UNISWAP_FACTORY_V2).getPair(
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
             _tokenBorrow,
             _dummyToken
         );
-        // address pair = IUniswapV2Factory(SUSHISWAP_FACTORY_V2).getPair(
-        //     _tokenBorrow,
-        //     _dummyToken
-        // );
 
         // Encode this address, this address will be used to store profit after swap
         address myAddress = msg.sender;
@@ -149,14 +139,14 @@ contract FlashSwapCross {
 
         // Execute swap to get the loan
         // address(this) refers to the address of the instance of the contract where the call is being made.
-        IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data); // This line will trigger uniswapV2Call
+        IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data); // This line will trigger pancakeCall
         // https://ethereum.stackexchange.com/questions/40018/what-is-addressthis-in-solidity
     }
 
     // Function to initiate arbitrage, conduct an arbitrary logic with the funds we already receive
     // Make sure this function can only be called from this contract
-    // https://docs.uniswap.org/contracts/v2/guides/smart-contract-integration/using-flash-swaps
-    function uniswapV2Call(
+    // https://ethereum.stackexchange.com/questions/103865/how-to-conduct-a-flash-loan-on-pancakeswap
+    function pancakeCall(
         address _sender,
         uint _amount0,
         uint _amount1,
@@ -165,11 +155,10 @@ contract FlashSwapCross {
         // “msg.sender” represents the address of the account that called the function present within the smart contract.
         address token0 = IUniswapV2Pair(msg.sender).token0();
         address token1 = IUniswapV2Pair(msg.sender).token1();
-        address pair = IUniswapV2Factory(UNISWAP_FACTORY_V2).getPair(
+        address pair = IUniswapV2Factory(PANCAKE_FACTORY).getPair(
             token0,
             token1
         );
-        // address pair = IUniswapV2Factory(SUSHISWAP_FACTORY_V2).getPair(token0, token1);
 
         require(msg.sender == pair, "Sender matches pair address");
         require(
@@ -190,20 +179,44 @@ contract FlashSwapCross {
         uint loanAmount = _amount0 > 0 ? _amount0 : _amount1;
         console.log("Loan Amount:", loanAmount);
 
-        // Start Swap
+        // The swap is successful, if the initial amount of funds decreases due to the loan amount (10 ETH)
+        uint acquiredCoinT1 = tradeSwap(ETH, CAKE, loanAmount); // In this case, 10 ETH get swapped to CAKE.
+        console.log(
+            "CAKE balance after first swap:",
+            IERC20(CAKE).balanceOf(address(this))
+        );
+        require(acquiredCoinT1 > 0, "First swap failed");
+
+        // Approve CAKE token transfer
+        IERC20(CAKE).safeApprove(address(PANCAKE_ROUTER), MAX_INT);
+
+        // Swap CAKE for BNB, with the amount we have after swapping 10 ETH for CAKE
+        uint acquiredCoinT2 = tradeSwap(CAKE, WBNB, acquiredCoinT1);
+        console.log(
+            "WBNB balance after second swap:",
+            IERC20(WBNB).balanceOf(address(this))
+        );
+        require(acquiredCoinT2 > 0, "Second swap failed"); // Make sure we get the value after the swap
+
+        // Approve WBNB token transfer
+        IERC20(WBNB).approve(address(PANCAKE_ROUTER), MAX_INT);
+
+        // Final swap BNB for ETH
+        uint acquiredCoinT3 = tradeSwap(WBNB, ETH, acquiredCoinT2);
+        IERC20(ETH).approve(address(PANCAKE_ROUTER), MAX_INT);
 
         // Check if our swap triangular arbitrage is profitable
-        // bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
+        bool isProfit = checkProfitability(amountRepay, acquiredCoinT3);
 
         // The require keyword is the same as the if condition, the difference is that this keyword will force the program to exit if the requirement is not met.
         // require(isProfit, "Not Profitable!!!");
 
         // Step 2: Get profit from arbitrage, if not profitable then cancel the transaction
         // Take the profit we earned to myAddress, before completing the TRX by returning the loan
-        // if (isProfit) {
-        //     IERC20 otherToken = IERC20(MKR); // Profit in MKR
-        //     otherToken.transfer(myAddress, acquiredCoinT3 - amountRepay);
-        // }
+        if (isProfit) {
+            IERC20 otherToken = IERC20(ETH); // Profit in ETH
+            otherToken.transfer(myAddress, acquiredCoinT3 - amountRepay);
+        }
 
         // Step 3: Return borrowed funds + pay gas fees
         // We need to pay for the gas before we deploy the code to the blockchain network.
@@ -216,7 +229,7 @@ contract FlashSwapCross {
         // https://hardhat.org/hardhat-runner/docs/guides/deploying
 
         // To confirm whether our deployment was successful, we can check it directly into the blockchain explorer
-        // https://sepolia.etherscan.io/address/0x28d40a1c05ace3ae7ce42e289a14cb8268ace2e4
+        // https://testnet.bscscan.com/address/0x28d40a1c05ace3ae7ce42e289a14cb8268ace2e4
 
         // And also check if the balance in the wallet is reduced due to TRX fees (gas fees)
     }
