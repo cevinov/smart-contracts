@@ -15,7 +15,7 @@ const {
 const provider = waffle.provider;
 
 describe("Test FlashSwap Contract (PancakeSwap)", function () {
-  let flashSwap, loanAmountDec, fundAmount, initFund, trxArb, gassUsedIDR;
+  let flashSwap, loanAmountDec, fundAmount, initFund, trxArb;
 
   const decimals = 18;
 

@@ -15,23 +15,23 @@ const {
 const provider = waffle.provider;
 
 describe("Test FlashSwap Contract (SushiSwap)", function () {
-  let flashSwap, loanAmountDec, fundAmount, initFund, trxArb, gassUsedIDR;
+  let flashSwap, loanAmountDec, fundAmount, initFund, trxArb;
 
   const decimals = 18;
 
-  // Address of the top holder of the ETH token, which we use as a funding source when doing flashloan
-  const ETHWhale = "0xC882b111A75C0c657fC507C04FbFcD2cC984F071";
+  // Address of the top holder of the MKR token, which we use as a funding source when doing flashloan
+  const MKRWhale = "0x0a3f6849f78076aefaDf113F5BED87720274dDC0";
 
   // Dummy token only to start a flashloan
-  const USDC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-  const ETH = "0x2170Ed0880ac9A755fd29B2688956BD959F933F8";
+  const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  const MKR = "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2";
 
   // This is a list of tokens as a triangular arbitration group
-  const CAKE = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82";
-  const WBNB = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+  const UNI = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+  const BNB = "0xB8c77482e45F1F44dE1745F52C74426C631bDD52";
 
-  // Starting capital with ETH token
-  const baseToken = ETH;
+  // Starting capital with MKR token
+  const baseToken = MKR;
 
   // Connect to base token
   const tokenBase = new ethers.Contract(baseToken, abi, provider);
@@ -43,7 +43,7 @@ describe("Test FlashSwap Contract (SushiSwap)", function () {
     const [owner] = await ethers.getSigners();
 
     // Check if the whale account has a balance
-    const balanceWhale = await tokenBase.balanceOf(ETHWhale);
+    const balanceWhale = await tokenBase.balanceOf(MKRWhale);
     console.log(
       "\n\nBalance Whale:",
       ethers.utils.formatUnits(balanceWhale, decimals)
@@ -55,18 +55,18 @@ describe("Test FlashSwap Contract (SushiSwap)", function () {
     await flashSwap.deployed(); // deployed() will wait until it has been
 
     // Configuring the loan amount
-    const loanAmount = "1"; // This value will be used when swapping to another token, for example ETH to CAKE
+    const loanAmount = "1"; // This value will be used when swapping to another token, for example MKR to UNI
     loanAmountDec = ethers.utils.parseUnits(loanAmount, decimals);
 
-    // Configure the funding amount to buy tokens in this case 100 ETH (Make sure we can handle the loan fees)
-    initFund = "100"; // 100 ETH
+    // Configure the funding amount to buy tokens in this case 100 MKR (Make sure we can handle the loan fees)
+    initFund = "100"; // 100 MKR
     fundAmount = ethers.utils.parseUnits(initFund, decimals);
 
     // Funding the contract using the whale account - for testing only
     // Arg: contract, sender, recepient, amount
     await impersonateFundErc20(
       tokenBase,
-      ETHWhale,
+      MKRWhale,
       flashSwap.address,
       initFund
     );
@@ -88,53 +88,53 @@ describe("Test FlashSwap Contract (SushiSwap)", function () {
       // Check if the contract balance is equal to the initialized fund amount
       expect(Number(flashSwapBalance)).equal(Number(initFund));
 
-      const contractBalanceETHDec = await flashSwap.getTokenBalance(ETH);
-      const contractBalanceETH = ethers.utils.formatUnits(
-        contractBalanceETHDec,
+      const contractBalanceMKRDec = await flashSwap.getTokenBalance(MKR);
+      const contractBalanceMKR = ethers.utils.formatUnits(
+        contractBalanceMKRDec,
         decimals
       ); // Convert to readable format
-      console.log("ETH:", contractBalanceETH);
+      console.log("MKR:", contractBalanceMKR);
     });
   });
 
   it("Execute the arbitrage", async function () {
     // Create an arbitration contract to make a flashloan by doing swap
-    trxArb = await flashSwap.startLoan(ETH, USDC, loanAmountDec); // Request a loan for ETH token
+    trxArb = await flashSwap.startLoan(MKR, USDC, loanAmountDec); // Request a loan for MKR token
     // console.log("TRX", trxArb);
     assert("TRX:", trxArb);
 
     // Get the token balance we borrowed after doing flashloan
-    const contractBalanceETHDec = await flashSwap.getTokenBalance(ETH);
-    const contractBalanceETH = Number(
-      ethers.utils.formatUnits(contractBalanceETHDec, decimals)
+    const contractBalanceMKRDec = await flashSwap.getTokenBalance(MKR);
+    const contractBalanceMKR = Number(
+      ethers.utils.formatUnits(contractBalanceMKRDec, decimals)
     );
-    console.log("ETH:", contractBalanceETH);
+    console.log("MKR:", contractBalanceMKR);
 
     // Start Swapping
-    console.log(`\n\nStart with ${initFund} ETH`);
-    // Token balance decreases, as we pay loan fees (3%) + Swap 10 ETH to CAKE
+    console.log(`\n\nStart with ${initFund} MKR`);
+    // Token balance decreases, as we pay loan fees (3%) + Swap 10 MKR to UNI
 
-    // 1. Check balance for CAKE token as target token swap (ETH to CAKE)
-    const contractBalanceCAKEDec = await flashSwap.getTokenBalance(CAKE);
-    const contractBalanceCAKE = ethers.utils.formatUnits(
-      contractBalanceCAKEDec,
+    // 1. Check balance for UNI token as target token swap (MKR to UNI)
+    const contractBalanceUNIDec = await flashSwap.getTokenBalance(UNI);
+    const contractBalanceUNI = ethers.utils.formatUnits(
+      contractBalanceUNIDec,
       decimals
     ); // Convert to readable format
-    console.log("Balance of CAKE:", contractBalanceCAKE);
+    console.log("Balance of UNI:", contractBalanceUNI);
 
-    // 2. Check balance after swapping CAKE for WBNB
-    const contractBalanceWBNBDec = await flashSwap.getTokenBalance(WBNB);
-    const contractBalanceWBNB = ethers.utils.formatUnits(
-      contractBalanceWBNBDec,
+    // 2. Check balance after swapping UNI for BNB
+    const contractBalanceBNBDec = await flashSwap.getTokenBalance(BNB);
+    const contractBalanceBNB = ethers.utils.formatUnits(
+      contractBalanceBNBDec,
       decimals
     ); // Convert to readable format
-    console.log("Balance of WBNB:", contractBalanceWBNB);
+    console.log("Balance of BNB:", contractBalanceBNB);
 
-    // 3. Check balance after swapping WBNB for ETH
-    const finalBalanceETHDec = await flashSwap.getTokenBalance(ETH);
-    const finalBalanceETH = Number(
-      ethers.utils.formatUnits(finalBalanceETHDec, decimals)
+    // 3. Check balance after swapping BNB for MKR
+    const finalBalanceMKRDec = await flashSwap.getTokenBalance(MKR);
+    const finalBalanceMKR = Number(
+      ethers.utils.formatUnits(finalBalanceMKRDec, decimals)
     );
-    console.log("Balance of ETH after swap:", finalBalanceETH);
+    console.log("Balance of MKR after swap:", finalBalanceMKR);
   });
 });
