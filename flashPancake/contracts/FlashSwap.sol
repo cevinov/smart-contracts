@@ -139,12 +139,13 @@ contract FlashSwap {
 
         // Execute swap to get the loan
         // address(this) refers to the address of the instance of the contract where the call is being made.
-        IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data);
+        IUniswapV2Pair(pair).swap(amount0Out, amount1Out, address(this), data); // This line will trigger pancakeCall
         // https://ethereum.stackexchange.com/questions/40018/what-is-addressthis-in-solidity
     }
 
     // Function to initiate arbitrage, conduct an arbitrary logic with the funds we already receive
     // Make sure this function can only be called from this contract
+    // https://ethereum.stackexchange.com/questions/103865/how-to-conduct-a-flash-loan-on-pancakeswap
     function pancakeCall(
         address _sender,
         uint _amount0,
