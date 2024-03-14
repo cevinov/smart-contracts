@@ -50,7 +50,7 @@ describe("Test FlashSwap Contract (SushiSwap)", function () {
     );
 
     // Get and deploy smart contract
-    const FlashSwap = await ethers.getContractFactory("FlashSwap");
+    const FlashSwap = await ethers.getContractFactory("FlashSwapCross");
     flashSwap = await FlashSwap.deploy(); // deploy() will create the transaction (contract address)
     await flashSwap.deployed(); // deployed() will wait until it has been
 

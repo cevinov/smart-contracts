@@ -13,8 +13,8 @@ import "./interfaces/IUniswapV2Router02.sol";
 import "./libraries/UniswapV2Library.sol";
 import "./libraries/SafeERC20.sol";
 
-// Create a contract for a flashloan called FlashSwap
-contract FlashSwap {
+// Create a contract for a flashloan called FlashSwapCross (Cross swap between two exchanges UniSwap and SushiSwap)
+contract FlashSwapCross {
     // SafeERC20 contracts are required for matters that require approval on our behalf
     using SafeERC20 for IERC20;
 
