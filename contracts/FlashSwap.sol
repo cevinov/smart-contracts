@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// Set up the solidity compiler to compile and run this contract
 pragma solidity ^0.7.0;
 
 // For debugging using console.log
