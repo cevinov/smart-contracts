@@ -37,13 +37,13 @@ contract FlashSwap {
         115792089237316195423570985008687907853269984665640564039457584007913129639935; // Max integer value in Solidity that can be handled
 
     // Funding smart contracts (Increase token balance) to pay for gas fees or loans
-    function fundFlashSwapContract(
-        address _myAddress,
-        address _token,
-        uint _amount
-    ) public {
-        IERC20(_token).transferFrom(_myAddress, address(this), _amount); // Address points to the address of this smart contract
-    }
+    // function fundFlashSwapContract(
+    //     address _myAddress,
+    //     address _token,
+    //     uint _amount
+    // ) public {
+    //     IERC20(_token).transferFrom(_myAddress, address(this), _amount); // Address points to the address of this smart contract
+    // }
 
     // Check token balance
     function getTokenBalance(address _address) public view returns (uint) {
