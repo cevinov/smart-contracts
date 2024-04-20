@@ -34,5 +34,6 @@ npx hardhat test
 
 You will likely see a "Arbitrage not profitable" error come up, if the arbitrage is not profitable. This is the most common result and in fact means the code is working.
 
-Backup contracts:
-ls /hardhat_contracts/
+RUN:
+Deploy Contract: npx hardhat run --network testnet scripts/deployFlash.js
+Test: npx hardhat test
