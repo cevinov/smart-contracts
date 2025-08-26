@@ -1,1 +1,0 @@
-Stores important variables for interacting with smart contracts on the blockchain
